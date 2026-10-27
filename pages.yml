@@ -1,0 +1,47 @@
+name: 뉴스브리핑 발행
+on:
+  push:
+    branches: [main]
+  issues:
+    types: [opened, edited, closed, reopened, deleted]
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: read
+  pages: write
+  id-token: write
+concurrency:
+  group: news-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/configure-pages@v5
+        id: pages
+      - name: 등록된 뉴스 확인 및 사이트 생성
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PAGES_URL: ${{ steps.pages.outputs.base_url }}
+        run: python scripts/build.py
+      - name: 자동으로 가져온 기사 정보를 보관
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/metadata-cache.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Save imported news previews"
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - uses: actions/deploy-pages@v4
+        id: deployment
