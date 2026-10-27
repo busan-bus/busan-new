@@ -1,0 +1,11 @@
+{
+  "title": "오늘의 시내버스 주요 뉴스",
+  "subtitle": "부산 시내버스와 교통 관련 뉴스를 사진·제목·짧은 요약으로 모았습니다.",
+  "repository": "",
+  "site_url": "",
+  "allowed_editors": [],
+  "share_image": "assets/busan-city-bus.jpg",
+  "share_image_width": 960,
+  "share_image_height": 720,
+  "share_image_fallback": "https://upload.wikimedia.org/wikipedia/commons/e/eb/Hyundai_Elec_City_Fuel_Cell_Busan_bus_copy.jpg"
+}
