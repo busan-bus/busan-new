@@ -159,5 +159,14 @@
     "summary": "",
     "media_type": "youtube",
     "youtube_metadata_version": 1
+  },
+  "https://www.youtube.com/shorts/NCTfVESDTDM": {
+    "title": "외국인 무임승차 수법 안 통하는 '부산'",
+    "source": "부산핫플",
+    "image": "https://i.ytimg.com/vi/NCTfVESDTDM/hqdefault.jpg",
+    "description": "",
+    "summary": "",
+    "media_type": "youtube",
+    "youtube_metadata_version": 1
   }
 }
