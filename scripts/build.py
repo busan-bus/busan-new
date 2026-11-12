@@ -146,13 +146,13 @@ def load_issues(repo,token,editors):
     return result
 
 def group_records(records,metadata=True,cache=None):
-    groups={}; cache={} if cache is None else cache
+    groups={}; positions={}; cache={} if cache is None else cache
     for record in sorted(records,key=lambda x:x.get('issue',0)):
         g=groups.setdefault(record['date'],{'date':record['date'],'note':'','articles':[],'issues':[]})
         if record.get('note'): g['note']=record['note']
         if record.get('issue'): g['issues'].append(record['issue'])
         known={a['url'] for a in g['articles']}
-        for article in record['articles']:
+        for index,article in enumerate(record['articles']):
             a=article.copy()
             if a['url'] in known:
                 # Later registrations may correct an already published article.
@@ -166,6 +166,7 @@ def group_records(records,metadata=True,cache=None):
                         if key=='summary': existing.pop('summary_kind',None)
                 continue
             known.add(a['url'])
+            positions[(record['date'],a['url'])]=(-record.get('issue',0),index)
             if metadata and any(not a.get(k) for k in ('title','source','summary','image')):
                 if not cache.get(a['url']):
                     fetched=fetch_metadata(a['url'])
@@ -181,6 +182,8 @@ def group_records(records,metadata=True,cache=None):
             a['source']=a.get('source') or urllib.parse.urlsplit(a['url']).hostname
             a['image']=safe_url(a.get('image',''))
             g['articles'].append(a)
+    for g in groups.values():
+        g['articles'].sort(key=lambda a:positions[(g['date'],a['url'])])
     return sorted(groups.values(),key=lambda x:x['date'],reverse=True)
 
 def script_json(value):
