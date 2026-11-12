@@ -84,8 +84,38 @@ class PublicRedirect(urllib.request.HTTPRedirectHandler):
         public_url(newurl)
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
+def youtube_id(url):
+    p=urllib.parse.urlsplit(safe_url(url))
+    host=(p.hostname or '').lower()
+    parts=p.path.strip('/').split('/')
+    video=''
+    if host in ('youtu.be','www.youtu.be'): video=parts[0]
+    elif host in ('youtube.com','www.youtube.com','m.youtube.com','music.youtube.com'):
+        if p.path=='/watch': video=urllib.parse.parse_qs(p.query).get('v',[''])[0]
+        elif len(parts)>1 and parts[0] in ('shorts','embed','live'): video=parts[1]
+    return video if re.fullmatch(r'[A-Za-z0-9_-]{11}',video) else ''
+
+def fetch_youtube_metadata(video):
+    result={'title':'유튜브 영상','source':'YouTube','image':f'https://i.ytimg.com/vi/{video}/hqdefault.jpg',
+            'description':'','summary':'','media_type':'youtube'}
+    try:
+        endpoint='https://www.youtube.com/oembed?'+urllib.parse.urlencode({'url':f'https://www.youtube.com/watch?v={video}','format':'json'})
+        public_url(endpoint)
+        request=urllib.request.Request(endpoint,headers={'User-Agent':'Mozilla/5.0 NewsBrief-LinkPreview/1.0'})
+        with urllib.request.build_opener(PublicRedirect).open(request,timeout=8) as response:
+            data=json.loads(response.read(100_000))
+        title=str(data.get('title','')).strip()
+        if title:
+            result.update(title=title,source=str(data.get('author_name') or 'YouTube'),youtube_metadata_version=1)
+            result['image']=safe_url(data.get('thumbnail_url','')) or result['image']
+    except Exception:
+        pass
+    return result
+
 def fetch_metadata(url):
     """Best-effort only; publisher restrictions fall back to editable manual fields."""
+    video=youtube_id(url)
+    if video: return fetch_youtube_metadata(video)
     try:
         public_url(url)
         request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 NewsBrief-LinkPreview/1.0'})
@@ -168,10 +198,11 @@ def group_records(records,metadata=True,cache=None):
             known.add(a['url'])
             positions[(record['date'],a['url'])]=(-record.get('issue',0),index)
             if metadata and any(not a.get(k) for k in ('title','source','summary','image')):
-                if not cache.get(a['url']):
+                if not cache.get(a['url']) or (youtube_id(a['url']) and cache[a['url']].get('youtube_metadata_version')!=1):
                     fetched=fetch_metadata(a['url'])
                     if fetched: cache[a['url']]=fetched
                 m=cache.get(a['url'],{})
+                if m.get('media_type'): a['media_type']=m['media_type']
                 a['title']=a.get('title') or m.get('title','')
                 a['source']=a.get('source') or m.get('source','')
                 a['image']=safe_url(a.get('image') or m.get('image',''))
