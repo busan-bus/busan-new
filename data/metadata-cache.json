@@ -152,11 +152,12 @@
     "summary_kind": "본문 자동 발췌"
   },
   "https://www.youtube.com/watch?v=e5foxYLkWnA": {
-    "title": " - YouTube",
-    "source": "",
-    "image": "",
-    "description": "Enjoy the videos and music you love, upload original content, and share it all with friends, family, and the world on YouTube.",
-    "summary": "Enjoy the videos and music you love, upload original content, and share it all with friends, family, and the world on YouTube.",
-    "summary_kind": "기사 소개"
+    "title": "대개편 끝난 줄 알았는데 또 바뀐다고? 11월 14일 부산 시내버스 노선 개편!!",
+    "source": "교통의빛(Gyobit)",
+    "image": "https://i.ytimg.com/vi/e5foxYLkWnA/hqdefault.jpg",
+    "description": "",
+    "summary": "",
+    "media_type": "youtube",
+    "youtube_metadata_version": 1
   }
 }
