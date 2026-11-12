@@ -154,7 +154,17 @@ def group_records(records,metadata=True,cache=None):
         known={a['url'] for a in g['articles']}
         for article in record['articles']:
             a=article.copy()
-            if a['url'] in known: continue
+            if a['url'] in known:
+                # Later registrations may correct an already published article.
+                # Empty fields must not erase earlier manual or fetched content.
+                existing=next(item for item in g['articles'] if item['url']==a['url'])
+                for key in ('title','summary','image','source'):
+                    value=a.get(key,'')
+                    if key=='image': value=safe_url(value)
+                    if value:
+                        existing[key]=value
+                        if key=='summary': existing.pop('summary_kind',None)
+                continue
             known.add(a['url'])
             if metadata and any(not a.get(k) for k in ('title','source','summary','image')):
                 if not cache.get(a['url']):
